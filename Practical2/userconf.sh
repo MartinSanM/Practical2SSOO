@@ -1,51 +1,52 @@
-#!/bin/bash
 
-# Crear el grupo ufvauditor
-groupadd ufvauditor
+#Crear los grupos
+sudo groupadd ufvauditor
+sudo groupadd ufvauditores
 
-# Crear usuarios para cada sucursal y asignar al grupo ufvauditor
-for i in {1..4}
-do
-    username="userSU00$i"
-    useradd -m -g ufvauditor $username
-    # Crear un directorio para cada usuario con los permisos específicos
-    mkdir /home/$username/SU00$i
-    chown $username:ufvauditor /home/$username/SU00$i
-    chmod 770 /home/$username/SU00$i
 
-    # Establecer permisos para que solo puedan leer en otros directorios de sucursales
-    for j in {1..4}
-    do
-        if [ $i -ne $j ]; then
-            mkdir -p /home/userSU00$j/SU00$j
-            setfacl -m u:$username:r /home/userSU00$j/SU00$j
-        fi
-    done
-done
+# Crear los usuarios para las sucursales y añadirlos al grupo ufvauditor
+sudo useradd -m -G ufvauditor userSU001
+sudo useradd -m -G ufvauditor userSU002
+sudo useradd -m -G ufvauditor userSU003
+sudo useradd -m -G ufvauditor userSU004
 
-# Crear el grupo ufvauditores
-groupadd ufvauditores
+# Crear los usuarios userfp y usermonitor y añadirlos al grupo ufvauditores
+sudo useradd -m -G ufvauditores userfp
+sudo useradd -m -G ufvauditores usermonitor
 
-# Crear usuarios userfp y usermonitor, y asignar al grupo ufvauditores
-useradd -m -g ufvauditores userfp
-useradd -m -g ufvauditores usermonitor
 
-# Crear directorios especiales para FileProcessor y Monitor
-mkdir /opt/FileProcessor
-mkdir /opt/Monitor
+# Crear directorios para cada sucursal
+sudo mkdir -p ./Files/SU001
+sudo mkdir -p ./Files/SU002
+sudo mkdir -p ./Files/SU003
+sudo mkdir -p ./Files/SU004
 
-# Asignar permisos para userfp
-chmod 770 /opt/FileProcessor
-chmod 770 /opt/Monitor
-setfacl -m u:userfp:rwx /opt/FileProcessor
-setfacl -m u:userfp:rwx /opt/Monitor
-setfacl -m u:userfp:rwx /home
+sudo chgrp ufvauditores ./*
+sudo chown userfp ./*
+sudo chmod 600 ./*
+sudo chgrp ufvauditor ./Files
+sudo chmod 760 ./Files
+sudo chmod 770 ./*.sh
 
-# Asignar permisos para usermonitor
-chmod 700 /opt/Monitor
-setfacl -m u:usermonitor:--x /opt/Monitor
+sudo chown userSU001:ufvauditor ./Files/SU001
+sudo chown userSU002:ufvauditor ./Files/SU002
+sudo chown userSU003:ufvauditor ./Files/SU003
+sudo chown userSU004:ufvauditor ./Files/SU004
 
-# Asegurarse de que usermonitor no tiene permisos sobre otros directorios
-setfacl -m u:usermonitor:--- /home
+sudo chmod 621 ./Files/SU001
+sudo chmod 621 ./Files/SU002
+sudo chmod 621 ./Files/SU003
+sudo chmod 621 ./Files/SU004
 
-echo "Configuración completada."
+
+sudo chown userfp:ufvauditores ./testFinal
+sudo chown usermonitor:ufvauditores ./testMon
+sudo chown root:ufvauditores ./fp.conf
+
+sudo chmod 100 ./testFinal
+sudo chmod 110 ./testMon
+
+# Archivo de configuración
+sudo chmod 660 ./fp.conf
+sudo setfacl -m u:userfp:rw ./fp.conf
+sudo setfacl -m u:usermonitor:rw ./fp.conf
